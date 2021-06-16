@@ -2,13 +2,13 @@ package db
 
 type DBHandler interface {
 	AddProduct(Product) ([]byte, error)
-	// TODO: implement
-	// AddVendor(Vendor) ([]byte, error)
-	// AddComment(Comment, Product) ([]byte, error)
-	//
-	// FindProduct(string) (Product, error)
-	// FindProductsByVendor(string) ([]Product, error)
-	// FindVendor(string) (Vendor, error)
-	//
+	AddVendor(Vendor) ([]byte, error)
+	AddComment(Comment, string) ([]byte, error)
+
+	FindProduct(string) (Product, error)
+	FindProductsByVendor(string) ([]Product, error)
+
 	GetProducts() ([]Product, error)
+	GetComments() ([]Comment, error)
+	GetVendors() ([]Vendor, error)
 }

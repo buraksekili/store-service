@@ -20,6 +20,7 @@ type Product struct {
 }
 
 type Vendor struct {
+	ID          bson.ObjectId `json:"id" bson:"_id,omitempty"`
 	Name        string
 	Description string
 }
