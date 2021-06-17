@@ -10,7 +10,7 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"github.com/buraksekili/store-service/conf"
+	"github.com/buraksekili/store-service/config"
 	"github.com/buraksekili/store-service/db/mongo"
 	"github.com/buraksekili/store-service/src/userservice/rest"
 )
@@ -46,24 +46,13 @@ func main() {
 		log.Fatalf("cannot get new AMQP publisher, err: %s", err.Error())
 	}
 
-	listener, err := amqp2.NewAMQPConsumer(conn, "listener_queue", exchangeName)
-	if err != nil {
-		log.Fatalf("cannot get new AMQP publisher, err: %s", err.Error())
-	}
-
-	config, _ := conf.ReadConfig(*configFile)
+	c, _ := config.ReadConfig(*configFile)
 	log.Println("Connecting to database")
-	h, err := mongo.NewMongoDBLayer(fmt.Sprintf("mongodb://%s:%s@%s", config.DBUser, config.DBPass, config.DBConnection))
+	h, err := mongo.NewMongoDBLayer(fmt.Sprintf("mongodb://%s:%s@%s", c.DBUser, c.DBPass, c.DBConnection))
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("Connected to %s!\n", config.DBType)
-
-	go func() {
-		if err := listener.Listen([]string{ADD_USER_EVENT}); err != nil {
-			fmt.Printf("cannot listen, err: %v", err)
-		}
-	}()
+	log.Printf("Connected to %s!\n", c.DBType)
 
 	err = rest.ServerREST(":8282", h, *publisher)
 	if err != nil {

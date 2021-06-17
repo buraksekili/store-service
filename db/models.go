@@ -13,6 +13,7 @@ type Product struct {
 	Name        string
 	Category    string
 	Description string
+	ImageURL    string
 	Price       float32
 	Stock       int
 	Vendor      Vendor

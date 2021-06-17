@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/buraksekili/store-service/conf"
+	"github.com/buraksekili/store-service/config"
 	"github.com/buraksekili/store-service/src/productservice/rest"
 
 	"github.com/buraksekili/store-service/db/mongo"
@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	// extract configuration
-	config, _ := conf.ReadConfig(*configFile)
+	config, _ := config.ReadConfig(*configFile)
 
 	log.Println("Connecting to database")
 	h, err := mongo.NewMongoDBLayer(fmt.Sprintf("mongodb://%s:%s@%s", config.DBUser, config.DBPass, config.DBConnection))

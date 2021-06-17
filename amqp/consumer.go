@@ -31,33 +31,34 @@ func NewAMQPConsumer(conn *amqp.Connection, queueName, exchange string) (*AMQPCo
 	return consumer, nil
 }
 
-func (c *AMQPConsumer) Listen(topics []string) error {
+func (c *AMQPConsumer) Listen(topics []string) (<-chan []byte, error) {
 	ch, err := c.conn.Channel()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, t := range topics {
 		if err := ch.QueueBind(c.queueName, t, c.exchange, false, nil); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	msgs, err := ch.Consume(c.queueName, "", false, false, false, false, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	forever := make(chan bool)
+
+	forever := make(chan []byte)
 	go func() {
 		log.Println("\t===\twaiting to receive a message\t===")
 		for msg := range msgs {
-			log.Printf("Received a message: %s\n", msg.Body)
+			forever <- msg.Body
+
 			if err = msg.Ack(false); err != nil {
 				fmt.Printf("cannot acknowledge msg=%#v, err: %v", msg, err)
 			}
 		}
 	}()
 
-	<-forever
-	return nil
+	return forever, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/buraksekili/store-service/db"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 // ServerREST serves a REST API for the product service.
@@ -32,5 +33,12 @@ func ServerREST(addr string, dh db.DBHandler) error {
 	vr.Methods("POST").Path("").HandlerFunc(h.addVendor)
 
 	log.Printf("Productservice listening on %s\n", addr)
-	return http.ListenAndServe(addr, r)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(r)
+	return http.ListenAndServe(addr, handler)
 }
