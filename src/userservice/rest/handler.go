@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	amqp2 "github.com/buraksekili/store-service/amqp"
+
 	"github.com/gorilla/mux"
 
 	"gopkg.in/mgo.v2/bson"
@@ -13,11 +15,12 @@ import (
 	"github.com/buraksekili/store-service/db"
 )
 
-type userServieHandler struct {
+type userServiceHandler struct {
 	dbHandler db.DBHandler
+	publisher amqp2.AMQPPublisher
 }
 
-func (h userServieHandler) addUser(w http.ResponseWriter, r *http.Request) {
+func (h *userServiceHandler) addUser(w http.ResponseWriter, r *http.Request) {
 	u := db.User{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		w.WriteHeader(400)
@@ -34,6 +37,16 @@ func (h userServieHandler) addUser(w http.ResponseWriter, r *http.Request) {
 
 	u.ID = bson.ObjectId(byteID)
 
+	userEvent := &amqp2.AddUserEvent{
+		ID:       u.ID,
+		Username: u.Username,
+		Email:    u.Email,
+		Password: u.Password,
+	}
+	if err := h.publisher.Publish(userEvent); err != nil {
+		log.Printf("cannot publish event %#v, err: %v", userEvent, err)
+	}
+
 	w.Header().Set("Content-Type", "application/json;charset=utf8")
 	w.WriteHeader(201)
 	if err := json.NewEncoder(w).Encode(u); err != nil {
@@ -41,7 +54,7 @@ func (h userServieHandler) addUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h userServieHandler) getUsers(w http.ResponseWriter, r *http.Request) {
+func (h *userServiceHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.dbHandler.GetUsers()
 	if err != nil {
 		w.WriteHeader(400)
@@ -56,7 +69,7 @@ func (h userServieHandler) getUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h userServieHandler) findUser(w http.ResponseWriter, r *http.Request) {
+func (h *userServiceHandler) findUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	uID, ok := vars["user_id"]
@@ -78,7 +91,7 @@ func (h userServieHandler) findUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func (h userServieHandler) login(w http.ResponseWriter, r *http.Request) {
+func (h *userServiceHandler) login(w http.ResponseWriter, r *http.Request) {
 
 	u := db.User{}
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
@@ -105,6 +118,6 @@ func (h userServieHandler) login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func newUserServiceHandler(dh db.DBHandler) *userServieHandler {
-	return &userServieHandler{dh}
+func newUserServiceHandler(dh db.DBHandler, p amqp2.AMQPPublisher) *userServiceHandler {
+	return &userServiceHandler{dh, p}
 }

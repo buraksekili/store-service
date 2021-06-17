@@ -4,14 +4,16 @@ import (
 	"log"
 	"net/http"
 
+	amqp2 "github.com/buraksekili/store-service/amqp"
+
 	"github.com/buraksekili/store-service/db"
 	"github.com/gorilla/mux"
 )
 
-func ServerREST(addr string, dh db.DBHandler) error {
+func ServerREST(addr string, dh db.DBHandler, publisher amqp2.AMQPPublisher) error {
 	r := mux.NewRouter()
 
-	h := newUserServiceHandler(dh)
+	h := newUserServiceHandler(dh, publisher)
 
 	// obtain sub-router for product router
 	ur := r.PathPrefix("/users").Subrouter()
