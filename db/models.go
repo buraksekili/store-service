@@ -31,3 +31,10 @@ type Comment struct {
 	Content string
 	Date    time.Time
 }
+
+type User struct {
+	ID       bson.ObjectId `bson:"_id"`
+	Username string        `json:"username"`
+	Email    string        `json:"email"`
+	Password string        `json:"password"`
+}

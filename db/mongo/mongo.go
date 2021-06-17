@@ -13,6 +13,7 @@ const (
 	PRODUCTS = "products"
 	VENDORS  = "vendors"
 	COMMENTS = "comments"
+	USERS    = "users"
 )
 
 type MongoDBLayer struct {
@@ -136,4 +137,45 @@ func (m *MongoDBLayer) GetVendors() ([]db.Vendor, error) {
 	vendors := []db.Vendor{}
 	err := s.DB(DB).C(VENDORS).Find(nil).All(&vendors)
 	return vendors, err
+}
+
+func (m *MongoDBLayer) AddUser(user db.User) ([]byte, error) {
+	s := m.session.Copy()
+	defer s.Close()
+	if !user.ID.Valid() {
+		user.ID = bson.NewObjectId()
+	}
+	return []byte(user.ID), s.DB(DB).C(USERS).Insert(user)
+}
+
+func (m *MongoDBLayer) GetUsers() ([]db.User, error) {
+	s := m.session.Copy()
+	defer s.Close()
+	users := []db.User{}
+	err := s.DB(DB).C(USERS).Find(nil).All(&users)
+	return users, err
+}
+
+func (m *MongoDBLayer) FindUser(id string) (db.User, error) {
+	s := m.session.Copy()
+	defer s.Close()
+
+	u := db.User{}
+	if err := s.DB(DB).C(USERS).Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); err != nil {
+		return u, fmt.Errorf("cannot find user %s, err: %v", id, err)
+	}
+
+	return u, nil
+}
+
+func (m *MongoDBLayer) FindUserByName(uname string) (db.User, error) {
+	s := m.session.Copy()
+	defer s.Close()
+
+	u := db.User{}
+	if err := s.DB(DB).C(USERS).Find(bson.M{"username": uname}).One(&u); err != nil {
+		return u, fmt.Errorf("cannot find user %s, err: %v", uname, err)
+	}
+
+	return u, nil
 }

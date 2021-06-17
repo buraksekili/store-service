@@ -31,6 +31,6 @@ func ServerREST(addr string, dh db.DBHandler) error {
 	vr.Methods("GET").Path("").HandlerFunc(h.getVendors)
 	vr.Methods("POST").Path("").HandlerFunc(h.addVendor)
 
-	log.Printf("Listening on %s\n", addr)
+	log.Printf("Productservice listening on %s\n", addr)
 	return http.ListenAndServe(addr, r)
 }

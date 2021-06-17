@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/buraksekili/store-service/src/productservice/rest"
-
 	"github.com/buraksekili/store-service/conf"
+	"github.com/buraksekili/store-service/src/productservice/rest"
 
 	"github.com/buraksekili/store-service/db/mongo"
 )
