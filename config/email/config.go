@@ -2,7 +2,6 @@ package email
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -24,8 +23,10 @@ func ExtractSMTPConfig(configFile string) (*SMTPConfig, error) {
 
 	p, _ := filepath.Abs("./src/emailservice/")
 	configFilePath := filepath.Join(p, configFile)
+	if v := os.Getenv("CONTAINER_EMAIL"); v != "" {
+		configFilePath = configFile
+	}
 
-	fmt.Println("abs\n", configFilePath)
 	f, err := os.Open(configFilePath)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@
     "<RECEIVER'S EMAIL>"
   ],
   "password": "<YOUR EMAIL'S PASSWORD>",
-  "smtpHost": "<SMTP HOST ADDRESS",
+  "smtpHost": "<SMTP HOST ADDRESS>",
   "smtpPort": "<SMTP PORT NUMBER>",
   "subject":  "<YOUR SUBJECT>",
   "message":  "<YOUR MESSAGE>"

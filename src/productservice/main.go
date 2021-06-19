@@ -1,33 +1,39 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/buraksekili/store-service/config"
+
 	"github.com/buraksekili/store-service/src/productservice/rest"
 
 	"github.com/buraksekili/store-service/db/mongo"
 )
 
-var configFile = flag.String("f", "./config.json", "path for config file")
+var productServiceURL = ":8181"
 
 func main() {
 
-	flag.Parse()
-
-	// extract configuration
-	config, _ := config.ReadConfig(*configFile)
-
-	log.Println("Connecting to database")
-	h, err := mongo.NewMongoDBLayer(fmt.Sprintf("mongodb://%s:%s@%s", config.DBUser, config.DBPass, config.DBConnection))
-	if err != nil {
-		panic(err)
+	if v := os.Getenv("PRODUCT_SERVICE_URL"); v != "" {
+		productServiceURL = v
 	}
-	log.Printf("Connected to %s!\n", config.DBType)
 
-	err = rest.ServerREST(config.AddrREST, h)
+	c := config.ReadDBConfig()
+	MONGOURL := fmt.Sprintf("mongodb://%s:27017", c.DBHost)
+	if v := os.Getenv("MONGODB_URL"); v != "" {
+		MONGOURL = v
+	}
+
+	log.Println("Connecting to database", MONGOURL)
+	h, err := mongo.NewMongoDBLayer(MONGOURL)
+	if err != nil {
+		log.Fatalf("cannot connect to the database %s, err: %v", MONGOURL, err)
+	}
+	log.Printf("Connected to %s!\n", MONGOURL)
+
+	err = rest.ServerREST(productServiceURL, h)
 	if err != nil {
 		panic(err)
 	}

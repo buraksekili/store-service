@@ -34,18 +34,16 @@ func main() {
 
 	sc, err := email.ExtractSMTPConfig(*configFile)
 	if err != nil {
-		log.Fatalf("cannot extract smtp config, err: %v", err)
+		log.Printf("cannot extract smtp config, err: %v", err)
 	}
 	e := emailer.NewEmailer(*sc)
 
 	if u := os.Getenv("AMQP_URL"); u != "" {
 		amqpAddress = u
 	}
-
 	if en := os.Getenv("AMQP_EXCHANGE_NAME"); en != "" {
 		exchangeName = en
 	}
-
 	if qn := os.Getenv("AMQP_QUEUE_NAME"); qn != "" {
 		queueName = qn
 	}

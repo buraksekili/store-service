@@ -1,48 +1,63 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
-	"strings"
 )
 
 const (
-	DefaultDB        = "mongodb"
-	DefaultDB_USER   = "root"
-	DefaultDB_PASS   = "example"
-	DefaultURL       = "127.0.0.1"
-	RestfulEPDefault = "localhost:8181"
+	DefaultDBType = "mongodb"
+	DefaultDBUser = "admin"
+	DefaultDBPass = "example"
+	DefaultDBHost = "localhost"
+	DefaultDBPort = "27017"
+	DefaultDBName = "test"
 )
 
-type Config struct {
-	DBType       string `json:"db_type"`
-	DBUser       string `json:"db_user"`
-	DBPass       string `json:"db_pass"`
-	DBConnection string `json:"db_conn"`
-	AddrREST     string `json:"restful_addr"`
+type DBConfig struct {
+	DBType string
+	DBUser string
+	DBPass string
+	DBHost string
+	DBPort string
+
+	// DBName is the name of the db that you are going to use.
+	DBName string
 }
 
-// ReadConfig reads config file if it exists. Otherwise, returns default configs.
-func ReadConfig(filename string) (Config, error) {
-	conf := Config{
-		DefaultDB,
-		DefaultDB_USER,
-		DefaultDB_PASS,
-		DefaultURL,
-		RestfulEPDefault,
+// ReadDBConfig parses environment variables. Based on the existing env. variables
+// it returns configuration struct to connect a database.
+func ReadDBConfig() DBConfig {
+	dbc := DBConfig{
+		DefaultDBType,
+		DefaultDBUser,
+		DefaultDBPass,
+		DefaultDBHost,
+		DefaultDBPort,
+		DefaultDBName,
 	}
 
-	if !strings.HasSuffix(filename, ".json") {
-		return conf, fmt.Errorf("cannot open non-json files, filename: %s", filename)
+	if v := os.Getenv("DBType"); v != "" {
+		dbc.DBType = v
 	}
 
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println("Configuration file not found. Continuing with default values.")
-		return conf, err
+	if v := os.Getenv("DBUser"); v != "" {
+		dbc.DBUser = v
 	}
 
-	err = json.NewDecoder(file).Decode(&conf)
-	return conf, err
+	if v := os.Getenv("DBPass"); v != "" {
+		dbc.DBPass = v
+	}
+
+	if v := os.Getenv("DBHost"); v != "" {
+		dbc.DBHost = v
+	}
+
+	if v := os.Getenv("DBPort"); v != "" {
+		dbc.DBPort = v
+	}
+
+	if v := os.Getenv("DBName"); v != "" {
+		dbc.DBName = v
+	}
+	return dbc
 }
