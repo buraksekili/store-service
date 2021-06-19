@@ -26,21 +26,6 @@ services:
     networks:
       - servicenet
 
-  # Prometheus container
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./metrics:/etc/prometheus/
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yaml'
-      - '--storage.tsdb.path=/prometheus'
-    ports:
-      - 9090:9090
-    restart: on-failure
-    depends_on:
-      - userservice
-      - productservice
-      - emailservice
 
   # UserService container
   userservice:
@@ -95,6 +80,27 @@ services:
       - 3000:3000
     depends_on:
       - prometheus
+    networks:
+      - monitoring
+
+  # Prometheus container
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./metrics:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - 9090:9090
+    restart: on-failure
+    depends_on:
+      - userservice
+      - productservice
+      - emailservice
+    networks:
+      - monitoring
+      - servicenet
 
   mongo:
     image: mongo
@@ -107,3 +113,4 @@ services:
 networks:
   servicenet:
     driver: bridge
+  monitoring:

@@ -5,10 +5,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/buraksekili/store-service/metrics"
 	"github.com/buraksekili/store-service/config"
-
 	"github.com/buraksekili/store-service/src/productservice/rest"
-
 	"github.com/buraksekili/store-service/db/mongo"
 )
 
@@ -32,6 +31,8 @@ func main() {
 		log.Fatalf("cannot connect to the database %s, err: %v", MONGOURL, err)
 	}
 	log.Printf("Connected to %s!\n", MONGOURL)
+
+	go metrics.ListenAndServe(":9100")
 
 	err = rest.ServerREST(productServiceURL, h)
 	if err != nil {

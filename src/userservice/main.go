@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/buraksekili/store-service/metrics"
+
 	amqp2 "github.com/buraksekili/store-service/amqp"
 
 	"github.com/streadway/amqp"
@@ -56,6 +58,8 @@ func main() {
 		panic(err)
 	}
 	log.Printf("Connected to %s!\n", c.DBType)
+
+	go metrics.ListenAndServe(":9100")
 
 	err = rest.ServerREST(userServiceURL, h, *publisher)
 	if err != nil {

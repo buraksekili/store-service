@@ -37,6 +37,9 @@ func (h *productServiceHandler) addProduct(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Prometheus metric
+	prodCounter.WithLabelValues(string(p.ID), p.Name).Inc()
+
 	p.ID = bson.ObjectId(byteID)
 	w.Header().Set("Content-Type", "application/json;charset=utf8")
 	w.WriteHeader(201)
