@@ -43,7 +43,7 @@ curl --location --request POST 'http://localhost:8282/users/signup' \
 | ------------- |:-------------:| -----|
 | userservice   |   Go          | `userservice` provides REST endpoints to operate CRUD <br/> operations for users of the store. <br/> It emits a message for `RabbitMQ` after new user created. <br/> This emitted message is forward to email service which is <br/> responsible to sending emails to the newly added users.|
 | productservice|   Go          | `productservice` provides REST endpoints to operate <br/> CRUD operations for products and vendors of the store.   |
-| emailservice  |   Go          |  `emailservice` sends an email to newly added users.   |
+| emailservice  |   Go          |  `emailservice` sends an email to newly added users. <br /> See [`config.json`](https://github.com/buraksekili/store-service/blob/master/src/emailservice/config.json) for required configurations for SMTP. |
 
 ## Features
 
