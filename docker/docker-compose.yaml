@@ -1,0 +1,115 @@
+version: "3.4"
+
+
+services:
+
+  # Container for MongoDB-express which will be UI for the DB.
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    networks:
+      - servicenet
+
+  # RabbitMQ container
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - servicenet
+
+  # UserService container
+  userservice:
+    build:
+      context: ..
+      dockerfile: ../Dockerfile.userservice
+    ports:
+      - 8282:8282
+    depends_on:
+      - rabbitmq
+      - mongo
+    restart: on-failure
+    networks:
+      - servicenet
+    environment:
+      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/
+      - DBHost=mongo
+
+  # ProductService container
+  productservice:
+    build:
+      context: ..
+      dockerfile: ../Dockerfile.productservice
+    depends_on:
+      - rabbitmq
+      - mongo
+    ports:
+    - 8181:8181
+    networks:
+      - servicenet
+    environment:
+      - DBHost=mongo
+
+  # EmailService Container
+  emailservice:
+    build:
+      context: ..
+      dockerfile: ../Dockerfile.emailservice
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    environment:
+      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/
+      - CONTAINER_EMAIL=docker
+    networks:
+      - servicenet
+
+  # Grafana container to visualize prometheus metrics
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  # Prometheus container
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./metrics:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - 9090:9090
+    restart: on-failure
+    depends_on:
+      - userservice
+      - productservice
+      - emailservice
+    networks:
+      - monitoring
+      - servicenet
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - 27017:27017
+    networks:
+      - servicenet
+
+networks:
+  servicenet:
+    driver: bridge
+  monitoring:
