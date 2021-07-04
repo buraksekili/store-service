@@ -28,9 +28,7 @@ services:
 
   # UserService container
   userservice:
-    build:
-      context: ..
-      dockerfile: ../Dockerfile.userservice
+    image: store/userservice
     ports:
       - 8282:8282
     depends_on:
@@ -45,9 +43,7 @@ services:
 
   # ProductService container
   productservice:
-    build:
-      context: ..
-      dockerfile: ../Dockerfile.productservice
+    image: store/productservice
     depends_on:
       - rabbitmq
       - mongo
@@ -60,12 +56,12 @@ services:
 
   # EmailService Container
   emailservice:
-    build:
-      context: ..
-      dockerfile: ../Dockerfile.emailservice
+    image: store/emailservice
     restart: on-failure
     depends_on:
       - rabbitmq
+    env_file:
+      - .env
     environment:
       - AMQP_URL=amqp://guest:guest@rabbitmq:5672/
       - CONTAINER_EMAIL=docker
@@ -86,7 +82,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./metrics:/etc/prometheus/
+      - ../metrics:/etc/prometheus/
     command:
       - '--config.file=/etc/prometheus/prometheus.yaml'
       - '--storage.tsdb.path=/prometheus'
