@@ -1,4 +1,4 @@
-SERVICES = emailservice productservice userservice
+SERVICES = emailservice products users
 CGO_ENABLED ?= 0
 GOARCH ?= amd64
 BUILD_DIR = build
