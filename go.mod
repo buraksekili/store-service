@@ -3,7 +3,9 @@ module github.com/buraksekili/store-service
 go 1.14
 
 require (
+	github.com/go-kit/kit v0.11.0
 	github.com/gorilla/mux v1.8.0
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/rs/cors v1.7.0
 	github.com/streadway/amqp v1.0.0

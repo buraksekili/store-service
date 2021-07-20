@@ -7,10 +7,10 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  - job_name: productservice
+  - job_name: products
     static_configs:
-      - targets: ["productservice:9100"]
+      - targets: ["products:9100"]
 
-  - job_name: userservice
+  - job_name: users
     static_configs:
-      - targets: ["userservice:9100"]
+      - targets: ["users:9100"]
