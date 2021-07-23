@@ -11,14 +11,14 @@ import (
 
 // ParseIntQueryParams parses integer query parameters
 // in the given request's URL.
-func ParseIntQueryParams(key string, def int, r *http.Request) (int64, error) {
+func ParseIntQueryParams(key string, def int, r *http.Request) (int, error) {
 	strval := r.URL.Query().Get(key)
 	if strings.TrimSpace(strval) == "" {
-		return int64(def), nil
+		return def, nil
 	}
 	val, err := strconv.ParseInt(strval, 10, 64)
 	if err != nil {
 		return 0, errors.Wrap(err, users.ErrInvalidRequestPath.Error())
 	}
-	return val, err
+	return int(val), err
 }
