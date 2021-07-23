@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
+
+	urlhelper "github.com/buraksekili/store-service/pkg/url"
 
 	"github.com/buraksekili/store-service/pkg/logger"
 
@@ -71,7 +72,7 @@ func MakeHTTPHandler(svc users.UserService, logger logger.Logger) http.Handler {
 }
 
 func decodeGetUsersReq(ctx context.Context, r *http.Request) (interface{}, error) {
-	offset, err := parseIntQueryParams("offset", 0, r)
+	offset, err := urlhelper.ParseIntQueryParams("offset", 0, r)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func decodeGetUsersReq(ctx context.Context, r *http.Request) (interface{}, error
 		return nil, errors.Wrap(fmt.Errorf("offset cannot be smaller than 0"), users.ErrInvalidRequestPath.Error())
 	}
 
-	limit, err := parseIntQueryParams("limit", 10, r)
+	limit, err := urlhelper.ParseIntQueryParams("limit", 10, r)
 	if err != nil {
 		return nil, err
 	}
@@ -158,16 +159,4 @@ func codeFrom(err error) int {
 	default:
 		return http.StatusInternalServerError
 	}
-}
-
-func parseIntQueryParams(key string, def int, r *http.Request) (int64, error) {
-	strval := r.URL.Query().Get(key)
-	if strings.TrimSpace(strval) == "" {
-		return int64(def), nil
-	}
-	val, err := strconv.ParseInt(strval, 10, 64)
-	if err != nil {
-		return 0, errors.Wrap(err, users.ErrInvalidRequestPath.Error())
-	}
-	return val, err
 }

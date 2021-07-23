@@ -64,5 +64,12 @@ func (ms metricsMiddleware) GetVendors(ctx context.Context, offset, limit int64)
 		ms.requestLatency.With("method", "get_vendors").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 	return ms.svc.GetVendors(ctx, offset, limit)
+}
 
+func (ms metricsMiddleware) GetVendor(ctx context.Context, vendorID string) (users.Vendor, error) {
+	defer func(begin time.Time) {
+		ms.requestCount.With("method", "get_vendor").Add(1)
+		ms.requestLatency.With("method", "get_vendor").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.GetVendor(ctx, vendorID)
 }

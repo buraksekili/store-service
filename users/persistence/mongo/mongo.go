@@ -117,3 +117,14 @@ func (m *MongoDBLayer) GetVendorByName(ctx context.Context, vendorName string) (
 	}
 	return v, nil
 }
+
+func (m *MongoDBLayer) GetVendorByID(ctx context.Context, vendorID string) (users.Vendor, error) {
+	s := m.session.Copy()
+	defer s.Close()
+
+	v := users.Vendor{}
+	if err := s.DB(DB).C(VENDORS).Find(bson.M{"_id": vendorID}).One(&v); err != nil {
+		return v, fmt.Errorf("cannot find vendor %s, err: %v", vendorID, err)
+	}
+	return v, nil
+}
