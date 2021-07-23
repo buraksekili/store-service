@@ -1,5 +1,9 @@
 # store-service
 
+
+> *CAVEAT*: This repo is still under development. Currently, I am working on [these tasks](https://github.com/buraksekili/store-service/issues/3).
+> You can follow the development from [branches](https://github.com/buraksekili/store-service/branches).
+
 `store-service` is a microservice-based web application. 
 It does not provide fully featured services that you might expect to see in real web applications such as complex *DB queries*, *security*, or *advanced search*.
 (For example, I did not even hash the user password). 
@@ -30,6 +34,7 @@ $ make run
 The default username and password are `admin` for `Grafana`.
 
 ### Local development
+
 
 `make`: Compiles all services.
 
