@@ -43,7 +43,7 @@ func (lm loggingMiddleware) GetUser(ctx context.Context, userID string) (user us
 	return lm.svc.GetUser(ctx, userID)
 }
 
-func (lm loggingMiddleware) GetUsers(ctx context.Context, offset, limit int64) (up users.UserPage, err error) {
+func (lm loggingMiddleware) GetUsers(ctx context.Context, offset, limit int) (up users.UserPage, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method `get_users` took %s to complete", time.Since(begin))
 		if err != nil {
@@ -81,7 +81,7 @@ func (lm loggingMiddleware) AddVendor(ctx context.Context, vendor users.Vendor) 
 	return lm.svc.AddVendor(ctx, vendor)
 }
 
-func (lm loggingMiddleware) GetVendors(ctx context.Context, offset, limit int64) (vp users.VendorPage, err error) {
+func (lm loggingMiddleware) GetVendors(ctx context.Context, offset, limit int) (vp users.VendorPage, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method `get_vendors` took %s to complete", time.Since(begin))
 		if err != nil {
