@@ -19,9 +19,9 @@ var (
 // Instead of returning all users at once, UserPage includes
 // Total, Offset and Limit values to ease pagination of the response.
 type UserPage struct {
-	Total  int64
-	Offset int64
-	Limit  int64
+	Total  int
+	Offset int
+	Limit  int
 	Users  []User
 }
 
@@ -29,9 +29,9 @@ type UserPage struct {
 // Instead of returning all vendors at once, VendorPage includes
 // Total, Offset and Limit values to ease pagination of the response.
 type VendorPage struct {
-	Total   int64
-	Offset  int64
-	Limit   int64
+	Total   int
+	Offset  int
+	Limit   int
 	Vendors []Vendor
 }
 
@@ -44,7 +44,7 @@ type UserService interface {
 	GetUser(ctx context.Context, userID string) (User, error)
 
 	// GetUsers fetches all users.
-	GetUsers(ctx context.Context, offset, limit int64) (UserPage, error)
+	GetUsers(ctx context.Context, offset, limit int) (UserPage, error)
 
 	// Login authenticates the given user. Returns non-nil
 	// error if the authentication fails.
@@ -58,7 +58,7 @@ type UserService interface {
 	GetVendor(ctx context.Context, vendorID string) (Vendor, error)
 
 	// GetVendors fetches all vendors.
-	GetVendors(ctx context.Context, offset, limit int64) (VendorPage, error)
+	GetVendors(ctx context.Context, offset, limit int) (VendorPage, error)
 }
 
 type usersService struct {
@@ -81,7 +81,7 @@ func (us usersService) GetUser(ctx context.Context, userID string) (User, error)
 	return us.users.GetUser(ctx, userID)
 }
 
-func (us usersService) GetUsers(ctx context.Context, offset, limit int64) (UserPage, error) {
+func (us usersService) GetUsers(ctx context.Context, offset, limit int) (UserPage, error) {
 	return us.users.ListUsers(ctx, offset, limit)
 }
 
@@ -105,7 +105,7 @@ func (us usersService) AddVendor(ctx context.Context, vendor Vendor) (string, er
 	return us.users.CreateVendor(ctx, vendor)
 }
 
-func (us usersService) GetVendors(ctx context.Context, offset, limit int64) (VendorPage, error) {
+func (us usersService) GetVendors(ctx context.Context, offset, limit int) (VendorPage, error) {
 	return us.users.ListVendors(ctx, offset, limit)
 }
 

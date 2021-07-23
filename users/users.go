@@ -13,12 +13,12 @@ type User struct {
 
 type UserRepository interface {
 	CreateUser(ctx context.Context, user User) (string, error)
-	ListUsers(ctx context.Context, offset, limit int64) (UserPage, error)
+	ListUsers(ctx context.Context, offset, limit int) (UserPage, error)
 	GetUser(ctx context.Context, userID string) (User, error)
 	GetUserByEmail(ctx context.Context, userEmail string) (User, error)
 
 	CreateVendor(ctx context.Context, vendor Vendor) (string, error)
-	ListVendors(ctx context.Context, offset, limit int64) (VendorPage, error)
+	ListVendors(ctx context.Context, offset, limit int) (VendorPage, error)
 	GetVendorByName(ctx context.Context, vendorName string) (Vendor, error)
 	GetVendorByID(ctx context.Context, vendorID string) (Vendor, error)
 }

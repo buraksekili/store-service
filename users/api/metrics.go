@@ -34,7 +34,7 @@ func (ms metricsMiddleware) GetUser(ctx context.Context, userID string) (users.U
 	return ms.svc.GetUser(ctx, userID)
 }
 
-func (ms metricsMiddleware) GetUsers(ctx context.Context, offset, limit int64) (users.UserPage, error) {
+func (ms metricsMiddleware) GetUsers(ctx context.Context, offset, limit int) (users.UserPage, error) {
 	defer func(begin time.Time) {
 		ms.requestCount.With("method", "get_users").Add(1)
 		ms.requestLatency.With("method", "get_users").Observe(time.Since(begin).Seconds())
@@ -58,7 +58,7 @@ func (ms metricsMiddleware) AddVendor(ctx context.Context, vendor users.Vendor) 
 	return ms.svc.AddVendor(ctx, vendor)
 }
 
-func (ms metricsMiddleware) GetVendors(ctx context.Context, offset, limit int64) (users.VendorPage, error) {
+func (ms metricsMiddleware) GetVendors(ctx context.Context, offset, limit int) (users.VendorPage, error) {
 	defer func(begin time.Time) {
 		ms.requestCount.With("method", "get_vendors").Add(1)
 		ms.requestLatency.With("method", "get_vendors").Observe(time.Since(begin).Seconds())

@@ -34,13 +34,13 @@ func (m *MongoDBLayer) CreateUser(_ context.Context, user users.User) (string, e
 	return user.ID, s.DB(DB).C(USERS).Insert(user)
 }
 
-func (m *MongoDBLayer) ListUsers(_ context.Context, offset, limit int64) (users.UserPage, error) {
+func (m *MongoDBLayer) ListUsers(_ context.Context, offset, limit int) (users.UserPage, error) {
 	s := m.session.Copy()
 	defer s.Close()
 
 	listUser := []users.User{}
 	fields := bson.M{"_id": 1, "username": 1, "email": 1}
-	err := s.DB(DB).C(USERS).Find(nil).Sort("email").Skip(int(offset * limit)).Limit(int(limit)).Select(fields).All(&listUser)
+	err := s.DB(DB).C(USERS).Find(nil).Sort("email").Skip(offset * limit).Limit(limit).Select(fields).All(&listUser)
 	if err != nil {
 		return users.UserPage{}, errors.Wrap(fmt.Errorf("cannot run a query to obtain a list of users"), err.Error())
 	}
@@ -50,7 +50,7 @@ func (m *MongoDBLayer) ListUsers(_ context.Context, offset, limit int64) (users.
 	}
 
 	return users.UserPage{
-		Total:  int64(count),
+		Total:  count,
 		Offset: offset,
 		Limit:  limit,
 		Users:  listUser,
@@ -87,7 +87,7 @@ func (m *MongoDBLayer) CreateVendor(_ context.Context, vendor users.Vendor) (str
 	return vendor.ID, s.DB(DB).C(VENDORS).Insert(&vendor)
 }
 
-func (m *MongoDBLayer) ListVendors(_ context.Context, offset, limit int64) (users.VendorPage, error) {
+func (m *MongoDBLayer) ListVendors(_ context.Context, offset, limit int) (users.VendorPage, error) {
 	s := m.session.Copy()
 	defer s.Close()
 
@@ -100,7 +100,7 @@ func (m *MongoDBLayer) ListVendors(_ context.Context, offset, limit int64) (user
 		return users.VendorPage{}, errors.Wrap(fmt.Errorf("cannot run a query to obtain the total count"), err.Error())
 	}
 	return users.VendorPage{
-		Total:   int64(count),
+		Total:   count,
 		Offset:  offset,
 		Limit:   limit,
 		Vendors: vendors,

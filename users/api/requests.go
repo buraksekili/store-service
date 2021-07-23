@@ -3,8 +3,8 @@ package api
 import "github.com/buraksekili/store-service/users"
 
 type getUsersReq struct {
-	offset int64
-	limit  int64
+	offset int
+	limit  int
 }
 
 type addUserReq struct {
