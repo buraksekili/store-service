@@ -30,6 +30,7 @@ func main() {
 	usersRepo, err := mongo.NewMongoDBLayer(u)
 	if err != nil {
 		fmt.Println("CANNOT CONNECT TO", u)
+		os.Exit(1)
 	}
 	var svc users.UserService
 	svc = users.New(usersRepo)

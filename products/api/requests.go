@@ -14,13 +14,20 @@ type getProductReq struct {
 	ProductID string `json:"product_id"`
 }
 
-type listProductsReq struct {
+type getProductsReq struct {
 	offset int
 	limit  int
 }
 
 type listVendorProductsReq struct {
-	offset   int
-	limit    int
 	VendorID string `json:"vendor_id"`
+}
+
+type getAllCommentsReq struct {
+	offset int
+	limit  int
+}
+
+type getProductCommentsReq struct {
+	ProductID string
 }

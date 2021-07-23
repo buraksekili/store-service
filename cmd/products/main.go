@@ -7,7 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/go-kit/kit/log"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
+
+	logpkg "github.com/buraksekili/store-service/pkg/logger"
 
 	"github.com/buraksekili/store-service/products"
 	"github.com/buraksekili/store-service/products/api"
@@ -17,18 +20,33 @@ import (
 const productServiceURL = ":8181"
 
 func main() {
-
-	logger := log.NewLogfmtLogger(os.Stdout)
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-	logger = log.With(logger, "caller", log.DefaultCaller)
+	logger := logpkg.New()
 
 	u := fmt.Sprintf("mongodb://mongo:27017")
 	productsRepo, err := mongo.NewMongoDBLayer(u)
 	if err != nil {
 		fmt.Println("CANNOT CONNECT TO", u)
+		os.Exit(1)
 	}
-	svc := products.New(productsRepo)
-	h := api.MakeHTTPHandler(svc, log.With(logger, "component", "HTTP"))
+
+	var svc products.ProductService
+	svc = products.New(productsRepo)
+	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.NewMetricsMiddleware(
+		svc,
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "products",
+			Subsystem: "api",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, []string{"method"}),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "products",
+			Subsystem: "api",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, []string{"method"}),
+	)
 
 	errs := make(chan error)
 	go func() {
@@ -38,9 +56,9 @@ func main() {
 	}()
 
 	go func() {
-		logger.Log("transport", "HTTP", "addr", productServiceURL)
-		errs <- http.ListenAndServe(productServiceURL, h)
+		logger.Info(fmt.Sprintf("Product service started on %s", productServiceURL))
+		errs <- http.ListenAndServe(productServiceURL, api.MakeHTTPHandler(svc, logger))
 	}()
 
-	logger.Log("exit", <-errs)
+	logger.Info(fmt.Sprintf("Users service exits, %v", <-errs))
 }
