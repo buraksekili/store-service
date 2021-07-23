@@ -20,6 +20,7 @@ type UserRepository interface {
 	CreateVendor(ctx context.Context, vendor Vendor) (string, error)
 	ListVendors(ctx context.Context, offset, limit int64) (VendorPage, error)
 	GetVendorByName(ctx context.Context, vendorName string) (Vendor, error)
+	GetVendorByID(ctx context.Context, vendorID string) (Vendor, error)
 }
 
 type Vendor struct {

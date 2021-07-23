@@ -93,3 +93,16 @@ func (lm loggingMiddleware) GetVendors(ctx context.Context, offset, limit int64)
 	}(time.Now())
 	return lm.svc.GetVendors(ctx, offset, limit)
 }
+
+func (lm loggingMiddleware) GetVendor(ctx context.Context, vendorID string) (vendor users.Vendor, err error) {
+	defer func(begin time.Time) {
+		message := fmt.Sprintf("Method `get_vendor` for %s took %s to complete", vendorID, time.Since(begin))
+		if err != nil {
+			lm.logger.Error(fmt.Sprintf("%s with error: %s.", message, err))
+			return
+		}
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
+
+	}(time.Now())
+	return lm.svc.GetVendor(ctx, vendorID)
+}

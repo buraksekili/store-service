@@ -15,6 +15,9 @@ var (
 	ErrInvalidRequestPath     = errors.New("invalid request path provided")
 )
 
+// UserPage represents a response for fetching multiple Users.
+// Instead of returning all users at once, UserPage includes
+// Total, Offset and Limit values to ease pagination of the response.
 type UserPage struct {
 	Total  int64
 	Offset int64
@@ -22,6 +25,9 @@ type UserPage struct {
 	Users  []User
 }
 
+// VendorPage represents a response for fetching multiple Vendors.
+// Instead of returning all vendors at once, VendorPage includes
+// Total, Offset and Limit values to ease pagination of the response.
 type VendorPage struct {
 	Total   int64
 	Offset  int64
@@ -48,12 +54,19 @@ type UserService interface {
 	// ID and the error if exists.
 	AddVendor(ctx context.Context, vendor Vendor) (string, error)
 
+	// GetVendor retrieves a vendor based on ID.
+	GetVendor(ctx context.Context, vendorID string) (Vendor, error)
+
 	// GetVendors fetches all vendors.
 	GetVendors(ctx context.Context, offset, limit int64) (VendorPage, error)
 }
 
 type usersService struct {
 	users UserRepository
+}
+
+func New(users UserRepository) UserService {
+	return usersService{users}
 }
 
 func (us usersService) AddUser(ctx context.Context, user User) (string, error) {
@@ -96,6 +109,6 @@ func (us usersService) GetVendors(ctx context.Context, offset, limit int64) (Ven
 	return us.users.ListVendors(ctx, offset, limit)
 }
 
-func New(users UserRepository) UserService {
-	return usersService{users}
+func (us usersService) GetVendor(ctx context.Context, vendorID string) (Vendor, error) {
+	return us.users.GetVendorByID(ctx, vendorID)
 }
