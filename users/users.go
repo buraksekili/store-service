@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+// User represents a general structure of the users that
+// are going to be used around the application.
 type User struct {
 	ID       string `json:"id" bson:"_id"`
 	Username string `json:"username" bson:"username"`
@@ -11,6 +13,7 @@ type User struct {
 	Password string `json:",omitempty" bson:"password"`
 }
 
+// UserRepository is an interface for persistence related stuffs.
 type UserRepository interface {
 	CreateUser(ctx context.Context, user User) (string, error)
 	ListUsers(ctx context.Context, offset, limit int) (UserPage, error)
@@ -23,6 +26,8 @@ type UserRepository interface {
 	GetVendorByID(ctx context.Context, vendorID string) (Vendor, error)
 }
 
+// Vendor represents a general structure of the vendors that
+// are going to be used around the application.
 type Vendor struct {
 	ID          string `json:"id" bson:"_id"`
 	Name        string `json:"name" bson:"name"`

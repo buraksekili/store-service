@@ -7,16 +7,13 @@ import (
 	"net/http"
 	"strings"
 
-	urlhelper "github.com/buraksekili/store-service/pkg/url"
-
 	"github.com/buraksekili/store-service/pkg/logger"
-
-	"github.com/pkg/errors"
-
+	urlhelper "github.com/buraksekili/store-service/pkg/url"
 	"github.com/buraksekili/store-service/users"
 	httptransport "github.com/go-kit/kit/transport/http"
-
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func MakeHTTPHandler(svc users.UserService, logger logger.Logger) http.Handler {
@@ -67,6 +64,8 @@ func MakeHTTPHandler(svc users.UserService, logger logger.Logger) http.Handler {
 		encodeResponse,
 		options...,
 	))
+
+	r.Handle("/metrics", promhttp.Handler())
 
 	return r
 }

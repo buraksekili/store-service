@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/buraksekili/store-service/users"
@@ -17,9 +16,9 @@ func getUsersEndpoint(svc users.UserService) endpoint.Endpoint {
 			return nil, err
 		}
 		return getUsersRes{
-			Total:  int(u.Total),
-			Offset: int(u.Offset),
-			Limit:  int(u.Limit),
+			Total:  u.Total,
+			Offset: u.Offset,
+			Limit:  u.Limit,
 			Users:  u.Users,
 		}, nil
 	}
@@ -84,9 +83,9 @@ func getVendorsEndpoint(svc users.UserService) endpoint.Endpoint {
 			return nil, err
 		}
 		return getVendorsRes{
-			Total:   int(u.Total),
-			Offset:  int(u.Offset),
-			Limit:   int(u.Limit),
+			Total:   u.Total,
+			Offset:  u.Offset,
+			Limit:   u.Limit,
 			Vendors: u.Vendors,
 		}, nil
 	}
@@ -95,14 +94,12 @@ func getVendorsEndpoint(svc users.UserService) endpoint.Endpoint {
 func validate(i interface{}) bool {
 	switch v := i.(type) {
 	case users.User:
-		fmt.Println("users")
 		if len(strings.TrimSpace(v.Email)) == 0 ||
 			len(strings.TrimSpace(v.Password)) == 0 {
 			return false
 		}
 		return true
 	case users.Vendor:
-		fmt.Println("vendor")
 		if len(strings.TrimSpace(v.Description)) == 0 ||
 			len(strings.TrimSpace(v.Name)) == 0 {
 			return false

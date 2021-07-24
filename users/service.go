@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/buraksekili/store-service/amqp"
+
 	"github.com/pkg/errors"
 )
 
@@ -13,6 +15,8 @@ var (
 	ErrUnauthorized           = errors.New("invalid credentials provided")
 	ErrUnsupportedContentType = errors.New("unsupported content type")
 	ErrInvalidRequestPath     = errors.New("invalid request path provided")
+	ErrUserAlreadyExists      = errors.New("user already exists")
+	ErrUserCreation           = errors.New("failed to create user")
 )
 
 // UserPage represents a response for fetching multiple Users.
@@ -62,19 +66,25 @@ type UserService interface {
 }
 
 type usersService struct {
-	users UserRepository
+	users     UserRepository
+	publisher amqp.AMQPPublisher
 }
 
-func New(users UserRepository) UserService {
-	return usersService{users}
+func New(users UserRepository, publisher amqp.AMQPPublisher) UserService {
+	return usersService{users, publisher}
 }
 
 func (us usersService) AddUser(ctx context.Context, user User) (string, error) {
 	u, _ := us.users.GetUserByEmail(ctx, user.Email)
-	if u.Email == user.Email || u.Username == user.Email {
-		return "", fmt.Errorf("user credentials already taken")
+	if u.Username == user.Username || u.Email == user.Email {
+		return "", ErrUserAlreadyExists
 	}
-	return us.users.CreateUser(ctx, user)
+	id, err := us.users.CreateUser(ctx, user)
+	if err != nil {
+		return "", errors.Wrap(err, ErrUserCreation.Error())
+	}
+	us.publishEvent(user)
+	return id, nil
 }
 
 func (us usersService) GetUser(ctx context.Context, userID string) (User, error) {
@@ -111,4 +121,14 @@ func (us usersService) GetVendors(ctx context.Context, offset, limit int) (Vendo
 
 func (us usersService) GetVendor(ctx context.Context, vendorID string) (Vendor, error) {
 	return us.users.GetVendorByID(ctx, vendorID)
+}
+
+func (us usersService) publishEvent(user User) {
+	userEvent := &amqp.AddUserEvent{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Password: user.Password,
+	}
+	_ = us.publisher.Publish(userEvent)
 }

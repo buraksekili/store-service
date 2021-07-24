@@ -7,6 +7,8 @@ import (
 	"github.com/buraksekili/store-service/users"
 )
 
+// Product represents a general structure of the products that
+// are going to be used around the application.
 type Product struct {
 	ID          string       `json:"id" bson:"_id"`
 	Name        string       `json:"name" bson:"name"`
@@ -41,6 +43,8 @@ type ProductRepository interface {
 	AddComment(ctx context.Context, comment Comment, productID string) (string, error)
 }
 
+// Comment represents a general structure of the comments that
+// are going to be used around the application.
 type Comment struct {
 	ID        string    `json:"id" bson:"_id"`
 	Owner     string    `json:"owner" bson:"owner"`
