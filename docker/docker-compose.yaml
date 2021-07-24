@@ -1,109 +1,107 @@
 version: "3.4"
 
 
-services:
 
+services:
   mongo:
     image: mongo
-    container_name: mongo
+    container_name: store-mongo
+    env_file:
+      - .env
     ports:
-      - 27017:27017
+      - ${S_MONGODB_PORT}:${S_MONGODB_PORT}
+    environment:
+      MONGO_INITDB_DATABASE: ${S_MONGODB_DB}
     networks:
       - servicenet
 
-#  # Container for MongoDB-express which will be UI for the DB.
-#  mongo-express:
-#    image: mongo-express
-#    restart: always
-#    ports:
-#      - 8081:8081
-#    environment:
-#      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-#      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-#    networks:
-#      - servicenet
-
-#  # RabbitMQ container
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    hostname: rabbitmq
-#    container_name: rabbitmq
-#    ports:
-#      - 5672:5672
-#      - 15672:15672
-#    networks:
-#      - servicenet
-#
-  # UserService container
-  users:
-    image: store/users
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    container_name: store-rabbitmq
     ports:
-      - 8282:8282
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - servicenet
+
+  users:
+    image: store-users
+    ports:
+      - ${S_USERS_PORT}:${S_USERS_PORT}
     depends_on:
-#      - rabbitmq
+      - rabbitmq
       - mongo
     restart: on-failure
     networks:
       - servicenet
     environment:
-      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/
-      - DBHost=mongo
+      - S_AMQP_ADDRESS=${S_AMQP_ADDRESS}
+      - S_AMQP_QUEUE_NAME=${S_AMQP_QUEUE_NAME}
+      - S_AMQP_EXCHANGE_NAME=${S_AMQP_EXCHANGE_NAME}
+      - S_MONGODB_DB=${S_MONGODB_DB}
+      - S_MONGODB_HOST=${S_MONGODB_HOST}
+      - S_MONGODB_PORT=${S_MONGODB_PORT}
+      - S_USERS_PORT=${S_USERS_PORT}
 
-  # ProductService container
   products:
-    image: store/products
-    depends_on:
-#      - rabbitmq
-      - mongo
+    image: store-products
     ports:
-    - 8181:8181
+      - ${S_PRODUCTS_PORT}:${S_PRODUCTS_PORT}
+    depends_on:
+      - rabbitmq
+      - mongo
+    restart: on-failure
     networks:
       - servicenet
     environment:
-      - DBHost=mongo
+      - S_MONGODB_DB=${S_MONGODB_DB}
+      - S_MONGODB_HOST=${S_MONGODB_HOST}
+      - S_MONGODB_PORT=${S_MONGODB_PORT}
+      - S_PRODUCTS_PORT=${S_PRODUCTS_PORT}
 
-  # EmailService Container
-#  emailservice:
-#    image: store/emailservice
-#    restart: on-failure
-#    depends_on:
-#      - rabbitmq
-#    env_file:
-#      - .env
-#    environment:
-#      - AMQP_URL=amqp://guest:guest@rabbitmq:5672/
-#      - CONTAINER_EMAIL=docker
-#    networks:
-#      - servicenet
+  emailer:
+    image: store-emailer
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    environment:
+      - S_AMQP_ADDRESS=${S_AMQP_ADDRESS}
+      - S_AMQP_QUEUE_NAME=${S_AMQP_QUEUE_NAME}
+      - S_AMQP_EXCHANGE_NAME=${S_AMQP_EXCHANGE_NAME}
+      - S_SMTP_FROM=${S_SMTP_FROM}
+      - S_SMTP_PASSWORD=${S_SMTP_PASSWORD}
+      - S_SMTP_HOST=${S_SMTP_HOST}
+      - S_SMTP_PORT=${S_SMTP_PORT}
+    networks:
+      - servicenet
 
-#  # Grafana container to visualize prometheus metrics
-#  grafana:
-#    image: grafana/grafana:latest
-#    ports:
-#      - 3000:3000
-#    depends_on:
-#      - prometheus
-#    networks:
-#      - monitoring
-#
-#  # Prometheus container
-#  prometheus:
-#    image: prom/prometheus:latest
-#    volumes:
-#      - ../metrics:/etc/prometheus/
-#    command:
-#      - '--config.file=/etc/prometheus/prometheus.yaml'
-#      - '--storage.tsdb.path=/prometheus'
-#    ports:
-#      - 9090:9090
-#    restart: on-failure
-#    depends_on:
-#      - users
-#      - products
-#      - emailservice
-#    networks:
-#      - monitoring
-#      - servicenet
+  grafana:
+    image: grafana/grafana:7.3.7
+    container_name: store-grafana
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: store-prometheus
+    volumes:
+      - ../metrics:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+    env_file:
+      - .env
+    ports:
+      - 9090:9090
+    restart: on-failure
+    networks:
+      - monitoring
+      - servicenet
 
 networks:
   servicenet:
