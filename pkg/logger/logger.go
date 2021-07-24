@@ -12,18 +12,24 @@ type Logger interface {
 	Info(string)
 	// Error logs on error level.
 	Error(string)
+
+	Log(keyvals ...interface{}) error
 }
 
 type logger struct {
 	kitLogger log.Logger
 }
 
+func (l logger) Log(keyvals ...interface{}) error {
+	return l.kitLogger.Log(keyvals)
+}
+
 func (l logger) Info(s string) {
-	l.kitLogger.Log("level", "DEBUG", "message", s)
+	_ = l.kitLogger.Log("level", "INFO", "message", s)
 }
 
 func (l logger) Error(s string) {
-	l.kitLogger.Log("level", "ERROR", "message", s)
+	_ = l.kitLogger.Log("level", "ERROR", "message", s)
 }
 
 func New() Logger {

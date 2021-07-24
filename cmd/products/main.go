@@ -7,30 +7,28 @@ import (
 	"os/signal"
 	"syscall"
 
-	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	usersMongo "github.com/buraksekili/store-service/users/persistence/mongo"
 
-	logpkg "github.com/buraksekili/store-service/pkg/logger"
+	"github.com/buraksekili/store-service/users"
 
+	"github.com/buraksekili/store-service/config/persistence"
+	"github.com/buraksekili/store-service/pkg/logger"
 	"github.com/buraksekili/store-service/products"
 	"github.com/buraksekili/store-service/products/api"
 	"github.com/buraksekili/store-service/products/persistence/mongo"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
-const productServiceURL = ":8181"
-
 func main() {
-	logger := logpkg.New()
+	logger := logger.New()
 
-	u := fmt.Sprintf("mongodb://mongo:27017")
-	productsRepo, err := mongo.NewMongoDBLayer(u)
-	if err != nil {
-		fmt.Println("CANNOT CONNECT TO", u)
-		os.Exit(1)
-	}
+	productsRepo := initPersistenceLayer(logger)
+	usersRepo := initUsersRepo(logger)
+	productServiceURL := getPort(logger)
 
 	var svc products.ProductService
-	svc = products.New(productsRepo)
+	svc = products.New(productsRepo, usersRepo)
 	svc = api.LoggingMiddleware(svc, logger)
 	svc = api.NewMetricsMiddleware(
 		svc,
@@ -60,5 +58,55 @@ func main() {
 		errs <- http.ListenAndServe(productServiceURL, api.MakeHTTPHandler(svc, logger))
 	}()
 
-	logger.Info(fmt.Sprintf("Users service exits, %v", <-errs))
+	logger.Error(fmt.Sprintf("Product service exits, %v", <-errs))
+}
+
+func initPersistenceLayer(logger logger.Logger) products.ProductRepository {
+	cp := persistence.NewMongoConfigParser()
+	if err := cp.Parse(); err != nil {
+		logger.Error(fmt.Sprintf("cannot extract MongoDB Config, err: %v", err))
+		os.Exit(1)
+	}
+
+	addr, err := cp.Address()
+	if err != nil {
+		logger.Error(fmt.Sprintf("cannot construct address for MongoDB, err: %v", err))
+		os.Exit(1)
+	}
+
+	productsRepo, err := mongo.NewMongoDBLayer(addr)
+	if err != nil {
+		logger.Error(fmt.Sprintf("cannot dial %s for the DB, err: %v", addr, err))
+		os.Exit(1)
+	}
+	return productsRepo
+}
+
+func initUsersRepo(logger logger.Logger) users.UserRepository {
+	cp := persistence.NewMongoConfigParser()
+	if err := cp.Parse(); err != nil {
+		logger.Error(fmt.Sprintf("cannot extract MongoDB Config, err: %v", err))
+		os.Exit(1)
+	}
+
+	addr, err := cp.Address()
+	if err != nil {
+		logger.Error(fmt.Sprintf("cannot construct address for MongoDB, err: %v", err))
+		os.Exit(1)
+	}
+
+	usersRepo, err := usersMongo.NewMongoDBLayer(addr)
+	if err != nil {
+		logger.Error(fmt.Sprintf("cannot dial %s for the DB, err: %v", addr, err))
+		os.Exit(1)
+	}
+	return usersRepo
+}
+
+func getPort(logger logger.Logger) (v string) {
+	if v = os.Getenv("S_PRODUCTS_PORT"); v == "" {
+		logger.Error("cannot get S_PRODUCTS_PORT environment variable")
+		os.Exit(1)
+	}
+	return fmt.Sprintf(":%s", v)
 }

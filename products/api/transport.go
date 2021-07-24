@@ -7,16 +7,13 @@ import (
 	"net/http"
 
 	"github.com/buraksekili/store-service/pkg/logger"
-
-	"github.com/buraksekili/store-service/users"
-	"github.com/pkg/errors"
-
 	urlhelper "github.com/buraksekili/store-service/pkg/url"
-
-	"github.com/gorilla/mux"
-
 	"github.com/buraksekili/store-service/products"
+	"github.com/buraksekili/store-service/users"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func MakeHTTPHandler(svc products.ProductService, logger logger.Logger) http.Handler {
@@ -69,15 +66,26 @@ func MakeHTTPHandler(svc products.ProductService, logger logger.Logger) http.Han
 		options...,
 	))
 
+	r.Path("/metrics").Handler(promhttp.Handler())
+
 	return r
 }
 
 func decodeAddProductReq(_ context.Context, r *http.Request) (interface{}, error) {
-	var req addProductReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var p products.Product
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		return addProductReq{}, err
 	}
-	return req, nil
+
+	return addProductReq{
+		Name:        p.Name,
+		VendorID:    p.Vendor.ID,
+		Description: p.Description,
+		Stock:       p.Stock,
+		Price:       p.Price,
+		ImageURL:    p.ImageURL,
+		Category:    p.Category,
+	}, nil
 }
 
 func decodeGetProductsReq(ctx context.Context, r *http.Request) (interface{}, error) {
