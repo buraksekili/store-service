@@ -1,4 +1,4 @@
-SERVICES = emailservice products users
+SERVICES = emailer products users
 CGO_ENABLED ?= 0
 GOARCH ?= amd64
 BUILD_DIR = build
@@ -13,7 +13,7 @@ define make_docker
 	docker build \
 		--no-cache \
 		--build-arg SVC=$(svc) \
-		--tag=store/$(svc) \
+		--tag=store-$(svc) \
 		-f docker/Dockerfile ./build
 endef
 
@@ -27,6 +27,9 @@ $(SERVICES):
 run:
 	docker-compose -f docker/docker-compose.yaml up
 
+down:
+	docker-compose -f docker/docker-compose.yaml down
+
 build_clean:
 	rm -rf $(BUILD_DIR)
 
@@ -34,3 +37,6 @@ $(DOCKERS):
 	$(call make_docker,$(@))
 
 images: $(DOCKERS)
+
+containers: $(DOCKERS)
+

@@ -20,7 +20,7 @@ The purpose of the development of `store-service` is to gain hands-on experience
 $ git clone https://github.com/buraksekili/store-service.git
 $ cd store-service/
 $ make
-$ make images
+$ make containers
 $ make run
 ```
 
@@ -38,7 +38,7 @@ The default username and password are `admin` for `Grafana`.
 
 `make`: Compiles all services.
 
-`make images`: Creates Docker images for all compiled services.
+`mages containers`: Creates Docker containers for all compiled services.
 
 `make <service_name>`: Rebuilds `<service_name>`.
 
