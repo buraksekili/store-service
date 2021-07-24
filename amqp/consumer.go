@@ -2,8 +2,8 @@ package amqp
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/buraksekili/store-service/pkg/logger"
 	"github.com/streadway/amqp"
 )
 
@@ -31,7 +31,7 @@ func NewAMQPConsumer(conn *amqp.Connection, queueName, exchange string) (*AMQPCo
 	return consumer, nil
 }
 
-func (c *AMQPConsumer) Listen(topics []string) (<-chan []byte, error) {
+func (c *AMQPConsumer) Listen(topics []string, logger logger.Logger) (<-chan []byte, error) {
 	ch, err := c.conn.Channel()
 	if err != nil {
 		return nil, err
@@ -50,12 +50,11 @@ func (c *AMQPConsumer) Listen(topics []string) (<-chan []byte, error) {
 
 	forever := make(chan []byte)
 	go func() {
-		log.Println("\t===\twaiting to receive a message\t===")
+		logger.Info("RabbitMQ: waiting to receive a message.")
 		for msg := range msgs {
 			forever <- msg.Body
-
 			if err = msg.Ack(false); err != nil {
-				fmt.Printf("cannot acknowledge msg=%#v, err: %v", msg, err)
+				logger.Error(fmt.Sprintf("cannot acknowledge msg:%#v, err: %v", msg, err))
 			}
 		}
 	}()
