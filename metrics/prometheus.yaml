@@ -2,15 +2,14 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
 
-  - job_name: products
+  - job_name: 'store-products'
     static_configs:
-      - targets: ["products:9100"]
+      - targets: ["products:8181"]
 
-  - job_name: users
+  - job_name: 'store-users'
     static_configs:
-      - targets: ["users:9100"]
+      - targets: ["users:8282"]
