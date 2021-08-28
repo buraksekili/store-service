@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/buraksekili/store-service/pkg/hasher"
+
 	"github.com/buraksekili/store-service/amqp"
 
 	"github.com/pkg/errors"
@@ -17,6 +19,7 @@ var (
 	ErrInvalidRequestPath     = errors.New("invalid request path provided")
 	ErrUserAlreadyExists      = errors.New("user already exists")
 	ErrUserCreation           = errors.New("failed to create user")
+	ErrHashPassword           = errors.New("failed to hash password")
 )
 
 // UserPage represents a response for fetching multiple Users.
@@ -68,10 +71,11 @@ type UserService interface {
 type usersService struct {
 	users     UserRepository
 	publisher amqp.AMQPPublisher
+	hasher    hasher.Hasher
 }
 
-func New(users UserRepository, publisher amqp.AMQPPublisher) UserService {
-	return usersService{users, publisher}
+func New(users UserRepository, publisher amqp.AMQPPublisher, hasher hasher.Hasher) UserService {
+	return usersService{users, publisher, hasher}
 }
 
 func (us usersService) AddUser(ctx context.Context, user User) (string, error) {
@@ -79,6 +83,12 @@ func (us usersService) AddUser(ctx context.Context, user User) (string, error) {
 	if u.Username == user.Username || u.Email == user.Email {
 		return "", ErrUserAlreadyExists
 	}
+	p, err := us.hasher.Hash(user.Password)
+	if err != nil {
+		return "", errors.Wrap(err, ErrHashPassword.Error())
+	}
+	user.Password = p
+
 	id, err := us.users.CreateUser(ctx, user)
 	if err != nil {
 		return "", errors.Wrap(err, ErrUserCreation.Error())
@@ -100,8 +110,7 @@ func (us usersService) Login(ctx context.Context, user User) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, ErrUnauthorized.Error())
 	}
-	if u.Password != user.Password ||
-		u.Email != user.Email {
+	if err := us.hasher.Compare(user.Password, u.Password); err != nil {
 		return "", ErrUnauthorized
 	}
 	return u.ID, nil

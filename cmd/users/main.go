@@ -7,6 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/buraksekili/store-service/pkg/hasher"
+
 	amqppkg "github.com/buraksekili/store-service/amqp"
 	amqputil "github.com/buraksekili/store-service/config/amqp"
 	"github.com/buraksekili/store-service/config/persistence"
@@ -26,8 +28,10 @@ func main() {
 	publisher := getPublisher(logger)
 	userServiceURL := getPort(logger)
 
+	h := hasher.New(14)
+
 	var svc users.UserService
-	svc = users.New(usersRepo, *publisher)
+	svc = users.New(usersRepo, *publisher, h)
 	svc = api.LoggingMiddleware(svc, logger)
 	svc = api.NewMetricsMiddleware(
 		svc,
