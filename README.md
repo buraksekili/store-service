@@ -67,8 +67,8 @@ For all possible <service_name>, see [Makefile](https://github.com/buraksekili/s
 
 ## HTTP API Examples
 
-### [Users endpoints](https://github.com/buraksekili/store-service/tree/gokit/users)
-### [Products endpoints](https://github.com/buraksekili/store-service/tree/gokit/products)
+### [Users endpoints](https://github.com/buraksekili/store-service/blob/master/users/README.md)
+### [Products endpoints](https://github.com/buraksekili/store-service/blob/master/products/README.md)
 
 ## Disclaimer
 
